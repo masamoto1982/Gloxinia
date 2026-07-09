@@ -84,6 +84,15 @@ one-hot and would carry identical information — it would *not* be transparent.
 Transparency comes from using **few** low frequencies. `num_freqs` is therefore
 recorded with every run and is part of the operationalization (R2).
 
+> **Update after running (see `RESULTS.md`).** The parenthetical above — that a
+> complete Fourier basis "carries identical information" and so would behave like
+> one-hot — is *informationally* true but was **dynamically refuted**: at
+> `num_freqs=48` the near-complete basis purely memorized and never generalized,
+> unlike one-hot which grokked. The ReLU-MLP-with-weight-decay is basis-sensitive;
+> an information-preserving rotation is not a dynamics-preserving one. This
+> pre-registered note is kept unedited above and corrected here rather than
+> rewritten.
+
 ## 4. The measurement (mirage guard is structural here)
 
 Grokking is the canonical case where a **binary** metric (val accuracy) jumps

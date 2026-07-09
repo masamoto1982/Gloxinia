@@ -34,13 +34,18 @@ def main():
         steps = [max(s, 1) for s in r["steps_log"]]
         enc = r["config"]["encoding"]
         delay = r.get("grok_delay")
+        tag = enc
+        if enc == "fourier":
+            tag = f"fourier(nf={r['config'].get('num_freqs')})"
+        elif enc == "onehot_distractor":
+            tag = f"onehot+distractor(d={r['config'].get('num_distractor')})"
 
         ax = axes[0][j]
         ax.plot(steps, r["train_acc"], label="train_acc", color="#1f77b4")
         ax.plot(steps, r["val_acc"], label="val_acc", color="#d62728")
         ax.set_xscale("log")
         ax.set_ylim(-0.02, 1.02)
-        ax.set_title(f"{enc}  (grok_delay={delay})")
+        ax.set_title(f"{tag}  (grok_delay={delay}, final_va={r['final_val_acc']:.2f})")
         ax.set_ylabel("accuracy")
         ax.legend(loc="lower right", fontsize=8)
         ax.grid(alpha=0.3)

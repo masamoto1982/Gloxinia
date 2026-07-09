@@ -89,9 +89,18 @@ experiments/
 
 ## Status
 
-Early. The first experiment (does the grokking step vanish under a
-structurally transparent encoding?) is the current focus. Its harness is
-verified by first reproducing classic grokking under the opaque encoding
-before anything is claimed about the transparent one. See
-[`experiments/grokking_encoding/RESULTS.md`](experiments/grokking_encoding/RESULTS.md)
-for what has actually been measured so far.
+Early. First experiment run (single seed, `p=97`, MLP). Measured so far — full
+detail and caveats in
+[`experiments/grokking_encoding/RESULTS.md`](experiments/grokking_encoding/RESULTS.md):
+
+- **Harness verified:** one-hot reproduces classic grokking, confirmed by both
+  the binary metric *and* the continuous co-metric (not a mirage).
+- **Supports C1:** injecting underdetermination (irrelevant nuisance dims) more
+  than doubled the grokking delay (2800 → 7600 steps) while keeping full
+  generalization — a *later*, not absent, step.
+- **C2 not cleanly tested — a null:** the transparent (low-frequency Fourier)
+  encoding removed the step but also failed to generalize fully, so the two
+  can't be separated. A pre-registered caveat (that a complete Fourier basis
+  ≈ one-hot) was *refuted*: the near-complete basis memorized and never grokked,
+  because the MLP is basis-sensitive. Both the null and the refutation are on the
+  record.

@@ -32,8 +32,19 @@ python run.py --encoding onehot  --steps 30000 --eval_every 200 --seed 0 --out r
 python run.py --encoding fourier --steps 30000 --eval_every 200 --seed 0 --out results/fourier.json
 
 # Arm C — inject underdetermination (single-seed probe of C1).
-python run.py --encoding onehot_distractor --steps 30000 --eval_every 200 --seed 0 --out results/onehot_distractor.json
+python run.py --encoding onehot_distractor --steps 20000 --eval_every 200 --seed 0 --out results/onehot_distractor.json
+
+# Fourier num_freqs sweep (transparency as a dial: few low freqs -> near-complete basis).
+for nf in 16 32 48; do
+  python run.py --encoding fourier --num_freqs $nf --steps 20000 --eval_every 200 --seed 0 --out results/fourier_nf${nf}.json
+done
+
+# Figure (accuracy over loss, log-x) for any set of result JSONs.
+python plot.py results/onehot.json results/onehot_distractor.json results/fourier.json results/fourier_nf48.json --out results/curves.png
 ```
+
+See [`RESULTS.md`](RESULTS.md) for the measured outcomes, including the null and
+the refuted caveat.
 
 Default hyperparameters (in `harness.py::Config`, echoed into every JSON):
 `p=97`, `train_frac=0.5`, `hidden=256`, `lr=1e-3`, `weight_decay=1.0`,
