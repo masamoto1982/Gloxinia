@@ -44,7 +44,7 @@ def onehot_encoding(p: int) -> torch.Tensor:
     return torch.eye(p)
 
 
-def fourier_encoding(p: int, num_freqs: int = 4) -> torch.Tensor:
+def fourier_encoding(p: int, num_freqs: int = 4, normalize: bool = False) -> torch.Tensor:
     """Structurally TRANSPARENT encoding. d = 2 * num_freqs.
 
     Residue r -> [cos(2*pi*k*r/p), sin(2*pi*k*r/p) for k in 1..num_freqs].
@@ -53,17 +53,30 @@ def fourier_encoding(p: int, num_freqs: int = 4) -> torch.Tensor:
     (nearby residues -> nearby points), so the group structure is exposed in
     the input geometry and interpolation is constrained.
 
+    `normalize` scales each row to unit L2 norm. This matters because the raw
+    rows have norm ~sqrt(num_freqs), so under a FIXED weight_decay the effective
+    regularization/input scale drifts with num_freqs and differs from onehot
+    (whose rows have unit norm). The v1 sweep left this UNCONTROLLED and so could
+    not tell "transparency removes the step" apart from "mis-scaled regularizer
+    broke the arm". `normalize=True` removes that confound; it is the v2 setting.
+
     CAVEAT (kept honest): a *complete* Fourier basis (num_freqs = (p-1)//2) is
     merely an orthogonal rotation of onehot and carries identical information,
     so it would NOT be transparent. Transparency comes from using FEW low
-    frequencies. `num_freqs` is recorded with every run for this reason.
+    frequencies. `num_freqs` is recorded with every run for this reason. (v1
+    also showed the near-complete basis does NOT behave like onehot dynamically
+    -- the MLP is basis-sensitive -- so "few low freqs" is what carries the
+    transparency, not the information content.)
     """
     r = torch.arange(p, dtype=torch.float32)
     feats = []
     for k in range(1, num_freqs + 1):
         feats.append(torch.cos(2 * math.pi * k * r / p))
         feats.append(torch.sin(2 * math.pi * k * r / p))
-    return torch.stack(feats, dim=1)  # [p, 2*num_freqs]
+    E = torch.stack(feats, dim=1)  # [p, 2*num_freqs]
+    if normalize:
+        E = E / E.norm(dim=1, keepdim=True).clamp_min(1e-8)
+    return E
 
 
 def onehot_distractor_encoding(
@@ -92,7 +105,8 @@ def build_encoding(name: str, p: int, **kwargs) -> torch.Tensor:
     if name == "onehot":
         return onehot_encoding(p)
     if name == "fourier":
-        return fourier_encoding(p, num_freqs=kwargs.get("num_freqs", 4))
+        return fourier_encoding(p, num_freqs=kwargs.get("num_freqs", 4),
+                                normalize=kwargs.get("fourier_normalize", False))
     if name == "onehot_distractor":
         return onehot_distractor_encoding(
             p,
