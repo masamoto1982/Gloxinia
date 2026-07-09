@@ -34,11 +34,15 @@ def main():
         steps = [max(s, 1) for s in r["steps_log"]]
         enc = r["config"]["encoding"]
         delay = r.get("grok_delay")
-        tag = enc
+        wd = r["config"].get("weight_decay")
         if enc == "fourier":
-            tag = f"fourier(nf={r['config'].get('num_freqs')})"
+            norm = "norm" if r["config"].get("fourier_normalize") else "raw"
+            tag = f"fourier(nf={r['config'].get('num_freqs')},{norm})"
         elif enc == "onehot_distractor":
             tag = f"onehot+distractor(d={r['config'].get('num_distractor')})"
+        else:
+            tag = enc
+        tag += f" wd={wd}"
 
         ax = axes[0][j]
         ax.plot(steps, r["train_acc"], label="train_acc", color="#1f77b4")

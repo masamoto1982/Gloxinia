@@ -15,6 +15,14 @@ Train one small model on one fixed algorithmic task — modular addition
 Prediction (C2): the grokking *step* is present under a **structurally opaque**
 encoding and **absent** under a **structurally transparent** one.
 
+> **Outcome (single seed).** v1 (`RESULTS.md`) was a *confounded null*: the
+> transparent arm removed the step but also failed to generalize. v2
+> (`RESULTS_v2.md`), after removing the weight-decay-scale confound (unit-norm
+> Fourier), **supports the prediction**: at matched `weight_decay`, one-hot shows
+> a memorization phase (val_loss rises to ~15) and a step, while transparent
+> Fourier shows neither (val_loss monotone, val tracks train) — across every
+> `num_freqs` and `weight_decay` tried. A seed sweep is still owed.
+
 ## 2. A labeling tension in the brief, resolved explicitly
 
 The handoff brief names two encodings:

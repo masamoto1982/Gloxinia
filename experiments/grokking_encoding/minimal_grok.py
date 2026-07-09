@@ -38,12 +38,12 @@ import torch.nn.functional as F
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--p", type=int, default=31)             # small => groks sooner
+    ap.add_argument("--p", type=int, default=31)             # small => fewer pairs
     ap.add_argument("--train_frac", type=float, default=0.5)
-    ap.add_argument("--hidden", type=int, default=128)
-    ap.add_argument("--lr", type=float, default=1e-3)
+    ap.add_argument("--hidden", type=int, default=256)
+    ap.add_argument("--lr", type=float, default=3e-3)
     ap.add_argument("--weight_decay", type=float, default=1.0)  # THE engine
-    ap.add_argument("--steps", type=int, default=12000)
+    ap.add_argument("--steps", type=int, default=20000)
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
 
