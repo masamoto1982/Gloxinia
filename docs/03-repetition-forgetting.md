@@ -35,16 +35,25 @@ is stated explicitly and can be disputed):
 
 No new mechanism; instrument standard training and check three predictions.
 
-- **P1a Over-repetition is necessary.** Compare `data_mode=fixed` (a limited set
-  re-presented every step — over-repetition) against `data_mode=online` (fresh
-  pairs each step from a large pool — no pair over-repeated). *Prediction:* fixed
-  → memorization phase then a step; online → validation tracks train, no
-  memorization gap, no step.
-  *Honest confound, stated up front:* "no over-repetition" cannot be separated
-  from "abundant data" in this design — online *is* the large-data regime. So
-  P1a tests the joint claim "over-repetition of limited data induces the
-  memorization phase," which is also the known finding that grokking needs
-  limited data. We also sweep `train_frac` (pool size) to see the delay move.
+- **P1a Over-repetition is necessary.** Operationalized as a `train_frac`
+  (dataset-size) sweep at fixed compute: a *small* train set means each of its
+  few patterns is leaned on heavily (the structural rule must be inferred from
+  little), a *large* one means the rule is over-determined by data. *Prediction:*
+  small frac → long delay or never groks; as frac grows the delay shrinks and
+  eventually vanishes (near-immediate generalization, no visible step).
+
+  **Correction to the pre-registration (made before running, kept visible).** An
+  earlier draft proposed a `data_mode=online` arm ("fresh pairs each step, no
+  pair over-repeated") as the clean no-repetition control. On this *finite* task
+  (`p=97` → ≤ 9409 pairs) that does not work: over ~20k steps × 512 the online
+  pool of ~4.7k pairs is still resampled ~thousands of times each, so
+  `online` is **full-batch vs SGD on the same data**, not repetition vs
+  no-repetition. It therefore does *not* isolate over-repetition and is **not**
+  used for the P1a claim. (The `data_mode=online` knob remains in the harness,
+  reported honestly for what it is, not as a repetition control.) The honest,
+  achievable axis is `train_frac`, with the standing caveat that "over-repetition
+  of a limited set" and "small dataset" are the *same thing* on a finite task —
+  which is also the known finding that grokking needs limited data.
 
 - **P1b The forgetting signature.** Log `weight_l2`. *Prediction:* under weight
   decay it *peaks* (memorization) then *declines* (forgetting), and the decline
