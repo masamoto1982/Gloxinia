@@ -23,6 +23,7 @@ def main():
     ap.add_argument("--boredom_gamma", type=float, default=0.0)
     ap.add_argument("--boredom_floor", type=float, default=0.05)
     ap.add_argument("--boredom_ema", type=float, default=0.9)
+    ap.add_argument("--forget_noise", type=float, default=0.0)
     ap.add_argument("--out", default=None)
     ap.add_argument("--quiet", action="store_true")
     args = ap.parse_args()

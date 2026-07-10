@@ -67,6 +67,12 @@ class RFConfig:
     boredom_gamma: float = 0.0       # >0: weight_i ∝ (1 - p_correct_i)^gamma
     boredom_floor: float = 0.05      # keep a floor so bored examples aren't zeroed
     boredom_ema: float = 0.9         # EMA on per-example correctness prob
+    # Phase-2 explicit FORGETTING as weight noise (0 => off). Each step adds
+    # Gaussian noise ~ N(0, forget_noise^2) to the trainable weights: an active
+    # "forgetting" that corrupts memorized specifics without being weight decay
+    # (it does not pull toward zero). Tests whether forgetting can replace weight
+    # decay as the grokking engine.
+    forget_noise: float = 0.0
 
 
 class MLP(nn.Module):
@@ -170,6 +176,13 @@ def train(cfg: RFConfig, verbose: bool = True) -> RFResult:
                 loss = F.cross_entropy(logits, y_tr)
         loss.backward()
         opt.step()
+
+        # explicit forgetting: corrupt the trainable weights with Gaussian noise
+        if cfg.forget_noise > 0:
+            with torch.no_grad():
+                for nm, pn in model.named_parameters():
+                    if "E" not in nm:
+                        pn.add_(torch.randn(pn.shape, generator=g) * cfg.forget_noise)
 
         if step % cfg.eval_every == 0:
             model.eval()
