@@ -89,18 +89,28 @@ experiments/
 
 ## Status
 
-Early. First experiment run (single seed, `p=97`, MLP). Measured so far — full
-detail and caveats in
-[`experiments/grokking_encoding/RESULTS.md`](experiments/grokking_encoding/RESULTS.md):
+Early. Two experiment rounds run (single seed, `p=97`, MLP). Full detail and
+caveats in
+[`RESULTS.md`](experiments/grokking_encoding/RESULTS.md) (v1) and
+[`RESULTS_v2.md`](experiments/grokking_encoding/RESULTS_v2.md) (v2):
 
 - **Harness verified:** one-hot reproduces classic grokking, confirmed by both
   the binary metric *and* the continuous co-metric (not a mirage).
 - **Supports C1:** injecting underdetermination (irrelevant nuisance dims) more
   than doubled the grokking delay (2800 → 7600 steps) while keeping full
   generalization — a *later*, not absent, step.
-- **C2 not cleanly tested — a null:** the transparent (low-frequency Fourier)
-  encoding removed the step but also failed to generalize fully, so the two
-  can't be separated. A pre-registered caveat (that a complete Fourier basis
-  ≈ one-hot) was *refuted*: the near-complete basis memorized and never grokked,
-  because the MLP is basis-sensitive. Both the null and the refutation are on the
-  record.
+- **Supports C2 (v2, after removing a v1 confound):** with everything held fixed
+  and *only* the encoding changed, the opaque one-hot shows a memorization phase
+  (val_loss *rises* to ~15 while val_acc sits at 0) and a visible step, while a
+  transparent unit-norm Fourier encoding shows **no memorization phase and no
+  step** (val_loss falls monotonically, val tracks train) — across every `nf`
+  and weight-decay tried. v1's "transparent arm can't generalize" was the
+  regularizer scale, not the medium. C2 conclusion:
+  [`RESULTS_v2.md`](experiments/grokking_encoding/RESULTS_v2.md).
+- **Simplest grokking recipe distilled:**
+  [`DISTILLED_RECIPE.md`](experiments/grokking_encoding/DISTILLED_RECIPE.md) +
+  [`minimal_grok.py`](experiments/grokking_encoding/minimal_grok.py) — four
+  load-bearing ingredients (opaque encoding · weight decay · limited data ·
+  full-batch Adam); the `--weight_decay 0` ablation kills grokking outright.
+
+Still owed before any of this is more than strongly suggestive: a **seed sweep**.

@@ -28,6 +28,8 @@ def main():
     ap.add_argument("--eval_every", type=int, default=100)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--num_freqs", type=int, default=4)
+    ap.add_argument("--fourier_normalize", action="store_true",
+                    help="scale each Fourier row to unit L2 norm (v2 confound fix)")
     ap.add_argument("--num_distractor", type=int, default=8)
     ap.add_argument("--out", default=None)
     ap.add_argument("--quiet", action="store_true")
@@ -37,7 +39,8 @@ def main():
         encoding=args.encoding, p=args.p, train_frac=args.train_frac,
         hidden=args.hidden, lr=args.lr, weight_decay=args.weight_decay,
         steps=args.steps, eval_every=args.eval_every, seed=args.seed,
-        num_freqs=args.num_freqs, num_distractor=args.num_distractor,
+        num_freqs=args.num_freqs, fourier_normalize=args.fourier_normalize,
+        num_distractor=args.num_distractor,
     )
     res = train(cfg, verbose=not args.quiet)
 

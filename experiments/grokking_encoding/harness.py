@@ -52,6 +52,7 @@ class Config:
     seed: int = 0
     # encoding-specific knobs (recorded verbatim so runs are self-describing)
     num_freqs: int = 4
+    fourier_normalize: bool = False
     num_distractor: int = 8
     # thresholds used to summarize the curves (reported, not load-bearing)
     train_acc_thresh: float = 0.99
@@ -130,6 +131,7 @@ def train(cfg: Config, verbose: bool = True) -> RunResult:
     torch.manual_seed(cfg.seed)
     enc = build_encoding(
         cfg.encoding, cfg.p, num_freqs=cfg.num_freqs,
+        fourier_normalize=cfg.fourier_normalize,
         num_distractor=cfg.num_distractor, seed=cfg.seed,
     )
     ab, y = make_data(cfg.p)
