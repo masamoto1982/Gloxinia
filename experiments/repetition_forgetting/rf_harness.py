@@ -60,6 +60,19 @@ class RFConfig:
     hidden: int = 256
     lr: float = 1e-3
     weight_decay: float = 1.0
+    # "crystallization" test: hold weight_decay at 0 until this step, then switch
+    # it on to `weight_decay`. Models "shake first (memorize, high norm), then be
+    # still (decay) and let the structure precipitate". 0 => decay on from step 0.
+    wd_switch_step: int = 0
+    # "read a sutra" test — what the network does DURING the still phase (after
+    # wd_switch_step). Probes whether the "toy" that lets the crystal form must be
+    # the real problem, or any occupation will do:
+    #   "study"  -- keep the real-task gradient (the toy IS the problem). Baseline.
+    #   "idle"   -- no gradient, decay only ("empty meditation"): does stillness
+    #               alone crystallize, or collapse? Decay applied manually.
+    #   "mantra" -- train to a fixed constant output ("chant one syllable"):
+    #               gradient flows but teaches nothing about the problem.
+    still_task: str = "study"
     steps: int = 20000
     eval_every: int = 200
     seed: int = 0
@@ -163,8 +176,9 @@ def train(cfg: RFConfig, verbose: bool = True) -> RFResult:
         pool_ab, pool_y = ab[pool], y[pool]
 
     model = MLP(cfg.p, cfg.hidden)
+    wd0 = 0.0 if cfg.wd_switch_step > 0 else cfg.weight_decay
     opt = torch.optim.AdamW(model.parameters(), lr=cfg.lr,
-                            weight_decay=cfg.weight_decay, betas=(0.9, 0.98))
+                            weight_decay=wd0, betas=(0.9, 0.98))
 
     # Phase-2 per-example correctness EMA (only used if boredom_gamma>0, fixed mode)
     pcorr = torch.full((len(y_tr),), 0.5)
@@ -172,44 +186,62 @@ def train(cfg: RFConfig, verbose: bool = True) -> RFResult:
     res = RFResult(config=asdict(cfg))
     t0 = time.time()
     for step in range(cfg.steps + 1):
-        model.train()
-        opt.zero_grad()
-        if cfg.data_mode == "online":
-            sel = torch.randint(0, len(pool_y), (cfg.online_batch,), generator=g)
-            logits = model(pool_ab[sel])
-            loss = F.cross_entropy(logits, pool_y[sel])
-        else:
-            logits = model(ab_tr)
-            if cfg.boredom_gamma > 0:
-                with torch.no_grad():
-                    p_i = torch.softmax(logits, 1)[torch.arange(len(y_tr)), y_tr]
-                    pcorr.mul_(cfg.boredom_ema).add_((1 - cfg.boredom_ema) * p_i)
-                    w = (1.0 - pcorr).clamp_min(cfg.boredom_floor) ** cfg.boredom_gamma
-                    w = w / w.mean()
-                loss = (F.cross_entropy(logits, y_tr, reduction="none") * w).mean()
-            else:
-                loss = F.cross_entropy(logits, y_tr)
-        loss.backward()
-        opt.step()
-
-        # explicit forgetting: corrupt the trainable weights with Gaussian noise
-        if cfg.forget_noise > 0:
+        if cfg.wd_switch_step > 0 and step == cfg.wd_switch_step:
+            for pg in opt.param_groups:
+                pg["weight_decay"] = cfg.weight_decay  # "become still"
+        in_still = cfg.wd_switch_step > 0 and step >= cfg.wd_switch_step
+        # "read a sutra": during the still phase, occupy the net differently.
+        if in_still and cfg.still_task == "idle":
+            # empty meditation: no gradient, apply only the decoupled decay the
+            # optimizer would (w *= 1 - lr*wd). Does stillness ALONE crystallize,
+            # or collapse? (eval still runs below.)
             with torch.no_grad():
                 for nm, pn in model.named_parameters():
                     if "E" not in nm:
-                        pn.add_(torch.randn(pn.shape, generator=g) * cfg.forget_noise)
+                        pn.mul_(1.0 - cfg.lr * cfg.weight_decay)
+        else:
+            model.train()
+            opt.zero_grad()
+            if in_still and cfg.still_task == "mantra":
+                # chant one syllable: push all inputs to a fixed constant class 0
+                logits = model(ab_tr)
+                loss = F.cross_entropy(logits, torch.zeros_like(y_tr))
+            elif cfg.data_mode == "online":
+                sel = torch.randint(0, len(pool_y), (cfg.online_batch,), generator=g)
+                logits = model(pool_ab[sel])
+                loss = F.cross_entropy(logits, pool_y[sel])
+            else:
+                logits = model(ab_tr)
+                if cfg.boredom_gamma > 0:
+                    with torch.no_grad():
+                        p_i = torch.softmax(logits, 1)[torch.arange(len(y_tr)), y_tr]
+                        pcorr.mul_(cfg.boredom_ema).add_((1 - cfg.boredom_ema) * p_i)
+                        w = (1.0 - pcorr).clamp_min(cfg.boredom_floor) ** cfg.boredom_gamma
+                        w = w / w.mean()
+                    loss = (F.cross_entropy(logits, y_tr, reduction="none") * w).mean()
+                else:
+                    loss = F.cross_entropy(logits, y_tr)
+            loss.backward()
+            opt.step()
 
-        # norm-reducing forgetting (uniform and/or stochastic-subset shrink)
-        if cfg.shrink_lambda > 0 or cfg.stoch_shrink_frac > 0:
-            with torch.no_grad():
-                for nm, pn in model.named_parameters():
-                    if "E" in nm:
-                        continue
-                    if cfg.shrink_lambda > 0:
-                        pn.mul_(1.0 - cfg.shrink_lambda)
-                    if cfg.stoch_shrink_frac > 0:
-                        mask = torch.rand(pn.shape, generator=g) < cfg.stoch_shrink_frac
-                        pn[mask] *= (1.0 - cfg.stoch_shrink_amount)
+            # explicit forgetting: corrupt the trainable weights with Gaussian noise
+            if cfg.forget_noise > 0:
+                with torch.no_grad():
+                    for nm, pn in model.named_parameters():
+                        if "E" not in nm:
+                            pn.add_(torch.randn(pn.shape, generator=g) * cfg.forget_noise)
+
+            # norm-reducing forgetting (uniform and/or stochastic-subset shrink)
+            if cfg.shrink_lambda > 0 or cfg.stoch_shrink_frac > 0:
+                with torch.no_grad():
+                    for nm, pn in model.named_parameters():
+                        if "E" in nm:
+                            continue
+                        if cfg.shrink_lambda > 0:
+                            pn.mul_(1.0 - cfg.shrink_lambda)
+                        if cfg.stoch_shrink_frac > 0:
+                            mask = torch.rand(pn.shape, generator=g) < cfg.stoch_shrink_frac
+                            pn[mask] *= (1.0 - cfg.stoch_shrink_amount)
 
         if step % cfg.eval_every == 0:
             model.eval()
