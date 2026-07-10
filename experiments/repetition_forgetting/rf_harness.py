@@ -60,6 +60,10 @@ class RFConfig:
     hidden: int = 256
     lr: float = 1e-3
     weight_decay: float = 1.0
+    # "crystallization" test: hold weight_decay at 0 until this step, then switch
+    # it on to `weight_decay`. Models "shake first (memorize, high norm), then be
+    # still (decay) and let the structure precipitate". 0 => decay on from step 0.
+    wd_switch_step: int = 0
     steps: int = 20000
     eval_every: int = 200
     seed: int = 0
@@ -163,8 +167,9 @@ def train(cfg: RFConfig, verbose: bool = True) -> RFResult:
         pool_ab, pool_y = ab[pool], y[pool]
 
     model = MLP(cfg.p, cfg.hidden)
+    wd0 = 0.0 if cfg.wd_switch_step > 0 else cfg.weight_decay
     opt = torch.optim.AdamW(model.parameters(), lr=cfg.lr,
-                            weight_decay=cfg.weight_decay, betas=(0.9, 0.98))
+                            weight_decay=wd0, betas=(0.9, 0.98))
 
     # Phase-2 per-example correctness EMA (only used if boredom_gamma>0, fixed mode)
     pcorr = torch.full((len(y_tr),), 0.5)
@@ -172,6 +177,9 @@ def train(cfg: RFConfig, verbose: bool = True) -> RFResult:
     res = RFResult(config=asdict(cfg))
     t0 = time.time()
     for step in range(cfg.steps + 1):
+        if cfg.wd_switch_step > 0 and step == cfg.wd_switch_step:
+            for pg in opt.param_groups:
+                pg["weight_decay"] = cfg.weight_decay  # "become still"
         model.train()
         opt.zero_grad()
         if cfg.data_mode == "online":
