@@ -137,4 +137,16 @@ caveats in
   norm-flat (boredom) and norm-up (noise) never grok. **Norm reduction is the
   essence; weight decay is just one instance.**
 
-Owed throughout: seed sweeps on the H-rep contrasts (single-seed so far).
+- **Why norm reduction works — low-norm ⟺ generalization**
+  ([`docs/04`](docs/04-low-norm-generalization.md),
+  [`RESULTS_low_norm.md`](experiments/low_norm/RESULTS_low_norm.md)). **M1
+  (supported):** among train-fitting solutions the generalizing ones are
+  low-norm (‖w‖≈120) far below the memorizer (≈324), with an underfitting floor
+  below — so norm reduction selects generalization. **M2 (my scaling prediction
+  failed, honestly reported):** the memorizer:generalizer gap does *not* widen
+  with p; instead the gap is a *post-fit drift* (at fit-onset the norms match;
+  unregularized training then inflates norm) and the structural solution is
+  *per-weight compact* (‖w‖/√#params ≈ 0.43, ~p-independent).
+
+Owed throughout: seed sweeps on the H-rep / low-norm contrasts (single-seed so
+far); a cleaner minimum-norm-interpolant measurement than the runaway wd=0 norm.
