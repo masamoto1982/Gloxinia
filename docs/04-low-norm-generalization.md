@@ -21,6 +21,18 @@ generalization track norm, and **why** is structure low-norm?
 This is training-time and mechanistic; it is the foundation under C1/C2/H-rep,
 not a new phenomenon.
 
+> **Outcome (single seed, see `experiments/low_norm/RESULTS_low_norm.md`).**
+> **M1 supports L:** at p=97 the generalizing solutions sit at low norm
+> (‖w‖≈118–153, val≈1) far below the memorizer (‖w‖=324, val 0.04), with an
+> underfitting floor at too-low norm (wd=5, ‖w‖=53, val 0.51). **M2's scaling
+> prediction was NOT supported** (the naive gap ratio shrinks with p and rests on
+> the runaway wd=0 norm). Two cleaner facts replaced it: (a) the norm gap is a
+> *post-fit drift* — at fit-onset memorizer≈generalizer norm; unregularized
+> training then inflates norm — and (b) the structural solution is *per-weight
+> compact* (‖w‖/√#params ≈ 0.43, ~p-independent). Refined reading: norm reduction
+> keeps the net in the low-norm basin where fitting *requires* the structural
+> solution; memorization isn't intrinsically norm-hungry at the fitting point.
+
 ## 2. Two measurements
 
 ### M1 — the norm ⟺ generalization law (fixed p=97)
