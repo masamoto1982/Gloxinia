@@ -36,6 +36,15 @@ runaway; stillness↔norm reduction/annealing. Where it is **only metaphor**: th
 "two minds," intent, subjective experience. Where it is **newly testable**: the
 role of the toy and of *shake-then-still* ordering.
 
+> **Outcome (single seed, see `experiments/crystallization/RESULTS_crystal.md`).**
+> **Confirmed.** wd=0 forever never groks (norm runs to 420); memorizing first to
+> *any* depth (‖w‖ up to 244 at step 15000) and *then* switching decay on
+> **groks every time**, and every run precipitates to the *same* structural norm
+> (~122). One sub-prediction was **corrected**: the crystallization time is
+> **constant (~3200 steps from the moment stillness begins)**, not longer for
+> deeper memorization — the prior shaking duration doesn't matter, only that you
+> eventually become still.
+
 ## 2. The prediction this model makes (pre-registered)
 
 The practitioner's technique is explicitly *sequential*: **first let the surface

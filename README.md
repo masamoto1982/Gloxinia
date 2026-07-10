@@ -148,5 +148,20 @@ caveats in
   unregularized training then inflates norm) and the structural solution is
   *per-weight compact* (‖w‖/√#params ≈ 0.43, ~p-independent).
 
-Owed throughout: seed sweeps on the H-rep / low-norm contrasts (single-seed so
-far); a cleaner minimum-norm-interpolant measurement than the runaway wd=0 norm.
+- **Grokking as crystallization ("insight")**
+  ([`docs/05`](docs/05-crystallization-insight.md),
+  [`RESULTS_crystal.md`](experiments/crystallization/RESULTS_crystal.md)). From a
+  practitioner's model of insight (occupy the surface mind with a low-load
+  repetitive task so the deep mind settles and precipitates a *crystal*). Mapped
+  to mechanism and tested: memorize at wd=0 (a high-norm "shaken solution"), then
+  switch decay on late. **Confirmed:** never-still never groks; memorizing to any
+  depth then becoming still **precipitates the same low-norm structural crystal
+  (‖w‖≈122) every time**, at a **constant ~3200-step crystallization time** from
+  when stillness begins. The memorized state is *supersaturated* — it already
+  holds the structure dissolved in it; weight decay is the *stillness* that
+  precipitates it, not merely an overfitting preventer.
+
+Owed throughout: seed sweeps on the H-rep / low-norm / crystallization contrasts
+(single-seed so far); a cleaner minimum-norm-interpolant measurement than the
+runaway wd=0 norm; and an independent test of the "toy" half (removing the data
+gradient during the still phase).
