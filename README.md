@@ -113,4 +113,12 @@ caveats in
   load-bearing ingredients (opaque encoding · weight decay · limited data ·
   full-batch Adam); the `--weight_decay 0` ablation kills grokking outright.
 
-Still owed before any of this is more than strongly suggestive: a **seed sweep**.
+- **Seed-robust (v3):** across 5 seeds the C1 delay separation is clean —
+  onehot `grok_delay` 2680 ± 98 vs distractor 7200 ± 283, non-overlapping — and
+  across 3 seeds the C2 discriminator is unanimous: opaque val_loss humps by
+  ~+10.7 while transparent stays monotone (+0.00).
+  [`RESULTS_v3_seeds.md`](experiments/grokking_encoding/RESULTS_v3_seeds.md).
+
+Next: the second hypothesis — grokking as *repetition-emphasis + boredom/
+forgetting* — pre-registered in
+[`docs/03-repetition-forgetting.md`](docs/03-repetition-forgetting.md).
