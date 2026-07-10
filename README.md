@@ -119,6 +119,18 @@ caveats in
   ~+10.7 while transparent stays monotone (+0.00).
   [`RESULTS_v3_seeds.md`](experiments/grokking_encoding/RESULTS_v3_seeds.md).
 
-Next: the second hypothesis — grokking as *repetition-emphasis + boredom/
-forgetting* — pre-registered in
-[`docs/03-repetition-forgetting.md`](docs/03-repetition-forgetting.md).
+- **Second hypothesis tested (H-rep):** grokking as *repetition-emphasis +
+  boredom/forgetting*
+  ([`docs/03`](docs/03-repetition-forgetting.md),
+  [`RESULTS_hrep.md`](experiments/repetition_forgetting/RESULTS_hrep.md)).
+  *Descriptively supported* (Phase 1): grok delay falls monotonically with data
+  and never groks below a critical fraction; a weight-norm decline ("forgetting")
+  accompanies the step in the over-memorized regime; label noise (inconsistent
+  repetition) collapses generalization. *Strong mechanism form falsified*
+  (Phase 2): an explicit boredom (loss reweighting) or forgetting (weight noise)
+  does **not** induce grokking at `weight_decay=0` — the engine is specifically
+  **norm-selective** forgetting (weight decay shrinking the high-norm memorized
+  table toward the low-norm structural circuit), not boredom/forgetting in
+  general.
+
+Owed throughout: seed sweeps on the H-rep contrasts (single-seed so far).

@@ -78,6 +78,16 @@ grokking with `weight_decay = 0`** — i.e., can an explicit boredom/forgetting
 stand in for weight decay as the engine? *Prediction (H-rep's strong form):* yes,
 or at least it shifts the grok delay markedly at fixed weight decay.
 
+> **Outcome (single seed, see `experiments/repetition_forgetting/RESULTS_hrep.md`).**
+> Phase 1 **supported** (P1a delay falls with data / never groks below a critical
+> fraction; P1b weight-norm decline aligns with the step in the over-memorized
+> regime; P1c noise collapses generalization). Phase 2's strong form **failed**:
+> neither explicit boredom (loss reweighting) nor explicit forgetting (weight
+> noise) induced grokking at `wd=0`, and boredom did not change the delay at
+> `wd=1.0`. Grokking rides a weight-norm *decline*; boredom is inert and noise
+> *raises* the norm. Refined claim: the engine is **norm-selective** forgetting
+> (weight decay), not boredom/forgetting in general.
+
 ## 3. What each outcome means
 
 - **H-rep supported** if: online removes the step (P1a), the weight-norm decline

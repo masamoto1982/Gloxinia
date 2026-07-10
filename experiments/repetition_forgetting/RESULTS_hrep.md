@@ -72,18 +72,74 @@ be captured by the emphasized rule — they can only be memorized — and they
 progressively block grokking. Supports "emphasis on **consistently** repeated
 patterns."
 
-## Phase 2 — build the mechanism, test induction
+## Phase 2 — build the mechanism, test induction → **strong claim FAILS** ✗
 
-_(pending — `results/p2_*.json`)_ Can an explicit **emphasis+boredom** (loss
-reweighting, `boredom_gamma`) or **forgetting** (weight noise, `forget_noise`)
-**induce grokking with `weight_decay = 0`** — i.e. replace weight decay as the
-engine? Controls: `wd=0` plain (no grok), `wd=1.0` plain (groks, delay 2800).
+![phase 2](results/hrep_phase2.png)
 
-## Reading so far
+Can an explicit **emphasis+boredom** (loss reweighting) or **forgetting** (weight
+noise) **induce grokking at `weight_decay = 0`** — replace weight decay as the
+engine? frac=0.5, 20k steps, seed 0. Every config memorizes (train_acc = 1.0):
 
-Phase 1 supports H-rep's descriptive claims on a single seed: over-repetition of
-limited data creates the memorization phase, its forgetting (weight-norm decline)
-aligns with the step in the over-memorized regime, and consistency is required
-for the rule to be emphasized. Whether an *explicit* boredom/forgetting is
-*sufficient* to induce grokking without weight decay is the Phase 2 question.
-Single seed throughout; a seed check on the headline contrasts is owed.
+| config | val_acc | |w| final | grokked? |
+|--------|--------:|----------:|:--------:|
+| wd=1.0 plain (ref) | 1.000 | 123 (peak 150 → declines) | **yes**, delay 2800 |
+| wd=0 plain (ref) | 0.024 | 271 (rises) | no |
+| wd=0 + boredom γ=2 | 0.025 | 270 | no |
+| wd=0 + boredom γ=4 | 0.021 | 271 | no |
+| wd=0 + forget-noise 0.003 | 0.030 | 275 | no |
+| wd=0 + forget-noise 0.01 | 0.031 | 494 (rises faster) | no |
+| wd=0 + forget-noise 0.03 | 0.002 | 1174 (train breaks: tr 0.83) | no |
+| wd=1.0 + boredom γ=2 | 1.000 | 123 | yes, delay **2800** (unchanged) |
+
+**Neither explicit mechanism induces grokking at wd=0, and boredom does not even
+change the delay at wd=1.0** (2800, identical to plain). The figure shows why:
+
+- **Grokking rides a weight-norm DECLINE.** The only run that generalizes
+  (wd=1.0) is the only one whose `|w|` peaks (~150) and then *falls* (to 123).
+  Every wd=0 run's `|w|` only *rises*.
+- **Boredom (loss reweighting) is inert.** In full-batch training a mastered
+  example already contributes ~zero gradient, so down-weighting it changes
+  almost nothing — the boredom curve sits on top of the wd=0-plain curve.
+- **Weight noise moves the norm the WRONG way.** Isotropic additive noise is a
+  random walk that *inflates* `|w|` (494 at 0.01, 1174 at 0.03), the opposite of
+  the reduction grokking needs; large noise just breaks training.
+
+### Refined conclusion on H-rep
+
+The metaphor is **descriptively apt but mechanistically specific**:
+
+- Phase 1 confirms the *signatures* (over-repetition builds memorization; a
+  weight-norm decline = "forgetting" accompanies the step in the over-memorized
+  regime; consistency is required).
+- Phase 2 falsifies the *strong constructive form*: a **generic** boredom or a
+  **generic** forgetting does not induce grokking. The "forgetting" that induces
+  it is specifically **norm-reducing decay toward the low-norm structural
+  solution** — weight decay's particular mechanism, which exploits that the
+  memorized table has higher weight norm than the structural circuit. Generic
+  boredom (reweighting) and generic forgetting (isotropic noise, which *raises*
+  norm) do not have this property.
+
+So H-rep is best stated as: grokking's engine is **norm-selective forgetting**
+(weight decay), not boredom/forgetting in general. This is a null for the strong
+mechanism claim and is reported as such (single seed; the two mechanisms tested
+are not exhaustive — a norm-reducing stochastic forgetting was not built).
+
+## Bottom line
+
+- **Descriptively (Phase 1): H-rep holds.** Over-repetition of limited data
+  creates the memorization phase; a weight-norm decline ("forgetting") aligns
+  with the step in the over-memorized regime; consistency is required for the
+  rule to be emphasized.
+- **Mechanistically (Phase 2): the strong form fails.** Explicit boredom (loss
+  reweighting) and explicit forgetting (weight noise) do **not** induce grokking
+  at wd=0, and boredom does not accelerate it at wd=1.0. The engine is
+  **norm-selective** forgetting (weight decay), which shrinks the high-norm
+  memorized table toward the low-norm structural solution — a property generic
+  boredom/noise lack.
+- **Net:** "emphasis + boredom/forgetting" is a good *description* of what
+  grokking looks like, but the *cause* is specifically weight-decay-style
+  norm reduction, not boredom or forgetting in general.
+
+Single seed throughout; the two Phase-2 mechanisms are not exhaustive (a
+norm-reducing stochastic forgetting was not built). A seed check on the headline
+Phase-1 contrasts is owed before these are more than suggestive.
