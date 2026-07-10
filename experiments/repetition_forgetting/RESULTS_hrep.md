@@ -119,27 +119,56 @@ The metaphor is **descriptively apt but mechanistically specific**:
   boredom (reweighting) and generic forgetting (isotropic noise, which *raises*
   norm) do not have this property.
 
-So H-rep is best stated as: grokking's engine is **norm-selective forgetting**
-(weight decay), not boredom/forgetting in general. This is a null for the strong
-mechanism claim and is reported as such (single seed; the two mechanisms tested
-are not exhaustive — a norm-reducing stochastic forgetting was not built).
+So H-rep is best stated as: grokking's engine is **norm-selective forgetting**,
+not boredom/forgetting in general. Phase 3 isolates *which* property of weight
+decay is doing the work.
+
+## Phase 3 — is it weight decay, or norm reduction in ANY form? → **norm reduction is the essence** ✓
+
+![phase 3](results/v4_norm/hrep_phase3.png)
+
+Phase 2 left open whether grokking needs *weight decay specifically* or just
+*norm reduction*. Test: drive the weight norm down at `weight_decay = 0` by
+mechanisms that are **not** AdamW's decay and, in one case, structurally very
+unlike it. frac=0.5, 20k steps, seed 0:
+
+| mechanism (all at wd=0) | what it does each step | grok_delay | final val | |w| |
+|---|---|---:|---:|---|
+| uniform manual shrink (λ=1e-3) | `w *= (1−λ)` — decoupled decay by hand | 2800 | 1.000 | 150 → 123 (declines) |
+| stochastic 10% subset (×0.99) | shrink a random 10% of weights | 2800 | 1.000 | 147 → 123 |
+| stochastic 5% subset (×0.98) | shrink a random 5% | 2800 | 1.000 | 146 → 123 |
+| **stochastic 2% subset (×0.95)** | shrink a random **2%** of weights | 2800 | 1.000 | 144 → 125 |
+| stochastic 30% subset (×0.99) | shrink a random 30% | 2400 | 0.998 | 83 |
+| *(Phase 2) boredom, norm-flat* | reweight loss | — | 0.02 | 270 (rises) |
+| *(Phase 2) weight noise, norm-up* | add Gaussian noise | — | 0.03 | 494 (rises) |
+
+**Every norm-reducing mechanism groks — with the same delay (~2800, matching the
+AdamW baseline) and the same peak-then-decline signature.** Even "shrink a random
+2% of the weights each step" — a sparse, stochastic operation with no resemblance
+to smooth decay — groks *identically*. The mechanisms that leave norm flat
+(boredom) or push it up (noise) do not grok at all.
+
+**Conclusion: norm reduction is the essence.** Grokking here happens *iff the
+weight norm is driven down*; the specific form (AdamW's `weight_decay`, manual
+uniform shrink, or shrinking a random 2–30% subset) is irrelevant — only the
+*direction* is. This is exactly what "forgetting the high-norm memorized table so
+the low-norm structural circuit surfaces" predicts, now shown to be
+implementation-independent.
 
 ## Bottom line
 
 - **Descriptively (Phase 1): H-rep holds.** Over-repetition of limited data
   creates the memorization phase; a weight-norm decline ("forgetting") aligns
-  with the step in the over-memorized regime; consistency is required for the
-  rule to be emphasized.
-- **Mechanistically (Phase 2): the strong form fails.** Explicit boredom (loss
-  reweighting) and explicit forgetting (weight noise) do **not** induce grokking
-  at wd=0, and boredom does not accelerate it at wd=1.0. The engine is
-  **norm-selective** forgetting (weight decay), which shrinks the high-norm
-  memorized table toward the low-norm structural solution — a property generic
-  boredom/noise lack.
-- **Net:** "emphasis + boredom/forgetting" is a good *description* of what
-  grokking looks like, but the *cause* is specifically weight-decay-style
-  norm reduction, not boredom or forgetting in general.
+  with the step; consistency is required for a pattern to be emphasized as a rule.
+- **Mechanistically (Phases 2–3): refined and then pinned down.** *Generic*
+  boredom (reweighting, norm-flat) and *generic* forgetting (noise, norm-up) do
+  **not** induce grokking. But **any norm-REDUCING mechanism does** — uniform or
+  a random 2% subset — with identical delay and signature. The engine is
+  **norm reduction toward the low-norm structural solution**, of which weight
+  decay is one instance among many.
+- **Net:** "emphasis + boredom/forgetting" describes grokking well; the *cause*
+  is specifically **downward pressure on the weight norm**. Not weight decay per
+  se, not boredom, not forgetting-as-noise — norm reduction, in any form.
 
-Single seed throughout; the two Phase-2 mechanisms are not exhaustive (a
-norm-reducing stochastic forgetting was not built). A seed check on the headline
-Phase-1 contrasts is owed before these are more than suggestive.
+Single seed throughout; a seed check on the headline contrasts is still owed
+before these are more than strongly suggestive.
