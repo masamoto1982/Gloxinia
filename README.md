@@ -131,6 +131,10 @@ caveats in
   does **not** induce grokking at `weight_decay=0` — the engine is specifically
   **norm-selective** forgetting (weight decay shrinking the high-norm memorized
   table toward the low-norm structural circuit), not boredom/forgetting in
-  general.
+  general. **Pinned down (Phase 3):** driving the weight norm down at
+  `weight_decay=0` by *any* means — uniform manual shrink or shrinking a random
+  **2%** of weights per step — groks *identically* (delay ~2800), while
+  norm-flat (boredom) and norm-up (noise) never grok. **Norm reduction is the
+  essence; weight decay is just one instance.**
 
 Owed throughout: seed sweeps on the H-rep contrasts (single-seed so far).

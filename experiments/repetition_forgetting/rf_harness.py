@@ -73,6 +73,21 @@ class RFConfig:
     # (it does not pull toward zero). Tests whether forgetting can replace weight
     # decay as the grokking engine.
     forget_noise: float = 0.0
+    # Phase-3 NORM-REDUCING forgetting: does grokking need weight decay
+    # specifically, or just *norm reduction in any form*? Two non-AdamW routes,
+    # both applied manually each step, both shrink norm but differ in form:
+    #   shrink_lambda      -- uniform: w *= (1 - shrink_lambda) every step. This
+    #                         is decoupled weight decay done by hand (positive
+    #                         control: confirms norm-reduction -> grok, and that
+    #                         it isn't something special about AdamW's wd param).
+    #   stoch_shrink_frac  -- stochastic: each step a RANDOM subset (this
+    #   stoch_shrink_amount   fraction of elements) is shrunk by this amount;
+    #                         the rest untouched. Structurally unlike uniform
+    #                         decay -- "randomly forget some connections" -- but
+    #                         still reduces norm. The decisive test.
+    shrink_lambda: float = 0.0
+    stoch_shrink_frac: float = 0.0
+    stoch_shrink_amount: float = 0.0
 
 
 class MLP(nn.Module):
@@ -183,6 +198,18 @@ def train(cfg: RFConfig, verbose: bool = True) -> RFResult:
                 for nm, pn in model.named_parameters():
                     if "E" not in nm:
                         pn.add_(torch.randn(pn.shape, generator=g) * cfg.forget_noise)
+
+        # norm-reducing forgetting (uniform and/or stochastic-subset shrink)
+        if cfg.shrink_lambda > 0 or cfg.stoch_shrink_frac > 0:
+            with torch.no_grad():
+                for nm, pn in model.named_parameters():
+                    if "E" in nm:
+                        continue
+                    if cfg.shrink_lambda > 0:
+                        pn.mul_(1.0 - cfg.shrink_lambda)
+                    if cfg.stoch_shrink_frac > 0:
+                        mask = torch.rand(pn.shape, generator=g) < cfg.stoch_shrink_frac
+                        pn[mask] *= (1.0 - cfg.stoch_shrink_amount)
 
         if step % cfg.eval_every == 0:
             model.eval()

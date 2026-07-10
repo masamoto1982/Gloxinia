@@ -85,8 +85,12 @@ or at least it shifts the grok delay markedly at fixed weight decay.
 > neither explicit boredom (loss reweighting) nor explicit forgetting (weight
 > noise) induced grokking at `wd=0`, and boredom did not change the delay at
 > `wd=1.0`. Grokking rides a weight-norm *decline*; boredom is inert and noise
-> *raises* the norm. Refined claim: the engine is **norm-selective** forgetting
-> (weight decay), not boredom/forgetting in general.
+> *raises* the norm. Refined claim: the engine is **norm-selective** forgetting,
+> not boredom/forgetting in general. **Phase 3 pins it down:** driving the norm
+> down at `wd=0` by any means — uniform manual shrink *or* shrinking a random 2%
+> of weights per step — groks identically (delay ~2800), while norm-flat/up do
+> not. **Norm reduction is the essence; the form (incl. weight decay) is one
+> instance.**
 
 ## 3. What each outcome means
 
