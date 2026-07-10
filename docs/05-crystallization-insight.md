@@ -44,6 +44,15 @@ role of the toy and of *shake-then-still* ordering.
 > **constant (~3200 steps from the moment stillness begins)**, not longer for
 > deeper memorization — the prior shaking duration doesn't matter, only that you
 > eventually become still.
+>
+> **The "toy" test (reading a sutra).** During the still phase, only **studying
+> the problem** crystallizes. **idle** (decay only) collapses the norm to 0
+> (stillness alone doesn't reorganize — the task gradient does; decay just
+> deflates); **mantra** (chanting a constant) makes the net **forget** the
+> problem. So the occupation must *be* the problem — a vanilla MLP, lacking the
+> human surface/deep memory split, cannot chant one thing and crystallize
+> another. An honest dis-analogy, and a pointer (protected "deep" store) for
+> future work.
 
 ## 2. The prediction this model makes (pre-registered)
 

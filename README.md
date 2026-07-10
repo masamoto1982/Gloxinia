@@ -159,7 +159,13 @@ caveats in
   (‖w‖≈122) every time**, at a **constant ~3200-step crystallization time** from
   when stillness begins. The memorized state is *supersaturated* — it already
   holds the structure dissolved in it; weight decay is the *stillness* that
-  precipitates it, not merely an overfitting preventer.
+  precipitates it, not merely an overfitting preventer. **The "toy" test** (does
+  stillness need the right occupation?): during the still phase only *studying the
+  problem* crystallizes — *idle* (decay only) collapses the norm to 0 (the task
+  gradient does the reorganizing; decay just supplies pressure), and *mantra*
+  (chanting a constant) makes the net *forget* the problem. So the occupation must
+  BE the problem — a vanilla MLP lacks the human surface/deep memory split, an
+  honest dis-analogy.
 
 Owed throughout: seed sweeps on the H-rep / low-norm / crystallization contrasts
 (single-seed so far); a cleaner minimum-norm-interpolant measurement than the

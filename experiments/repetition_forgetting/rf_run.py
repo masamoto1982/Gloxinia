@@ -18,6 +18,7 @@ def main():
     ap.add_argument("--lr", type=float, default=1e-3)
     ap.add_argument("--weight_decay", type=float, default=1.0)
     ap.add_argument("--wd_switch_step", type=int, default=0)
+    ap.add_argument("--still_task", choices=["study", "idle", "mantra"], default="study")
     ap.add_argument("--steps", type=int, default=20000)
     ap.add_argument("--eval_every", type=int, default=200)
     ap.add_argument("--seed", type=int, default=0)

@@ -53,7 +53,45 @@ and the norm turnover coincide):
   per-weight-compact structural solution (`low_norm/M1`). The **ordering** result
   is new: precipitation works *after* arbitrary memorization, at a fixed rate.
 
-## Honest scope
+## The "toy" test — reading a sutra (does stillness need the *right* occupation?)
+
+The owner's model gives the "toy" (a low-load repetitive task — chanting, Tetris)
+a specific job: occupy the *surface* mind so the *deep* mind can settle. That
+raises a sharp question the crystallization run left open: during the still
+phase, must the network keep working on **the problem**, or will *any* occupation
+do? Test: memorize at wd=0 until step 3000, then enter the still phase (decay on)
+doing one of three things.
+
+![sutra](results/toy/sutra.png)
+
+| still-phase occupation | final val | final train | ‖w‖ after switch | outcome |
+|---|---:|---:|---|---|
+| **study** — keep the real-task gradient (toy = the problem) | **1.000** | 1.000 | 220 → **124** | **crystallizes** |
+| **idle** — no gradient, decay only ("empty meditation") | 0.010 | 0.011 | 220 → **0.0** | collapse to nothing |
+| **mantra** — chant a constant class ("occupy, wrong content") | 0.010 | 0.011 | 220 → ~10 | **forgets X** |
+
+Two things are established, and one honest dis-analogy:
+
+1. **Stillness alone does not crystallize — it collapses.** With no task gradient
+   (idle), weight decay just **deflates the memorized weights uniformly to zero**
+   (‖w‖ 220 → 0); train *and* val fall to chance. So weight decay supplies the
+   downward *pressure*, but the **task gradient does the reorganizing** — it keeps
+   re-deriving the fit at successively lower norm, which is what forces the
+   structural solution out. This sharpens Phase 3: norm reduction crystallizes
+   *only in the presence of the concurrent task gradient*, not from a frozen
+   memorized state.
+2. **The occupation must be the problem.** Chanting something content-free
+   (mantra → constant output) keeps gradients flowing but **overwrites X**: the
+   weights follow the trivial target down to ‖w‖≈10 and X is forgotten. Occupation
+   per se is not enough; it has to be the real task.
+3. **Honest dis-analogy with the human practice.** A meditator can chant an
+   *unrelated* sutra (occupy the surface) while the deep mind **holds** the
+   problem, and the insight still precipitates. A vanilla MLP **cannot** — it has
+   no surface/deep memory separation, so an unrelated occupation destroys what it
+   was holding. For this network the "toy" and the "problem" must be the same
+   thing. (This suggests the human technique works *because of* that separation —
+   a testable direction: a net with a protected "deep" store vs a plastic
+   "surface" might chant one thing and crystallize another. Not built here.)
 
 Single seed; onehot MLP; p=97; training-time. The analogy to the human insight
 practice is a metaphor (see `docs/05` §0) — only the training-time dynamics are
