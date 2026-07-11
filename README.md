@@ -167,7 +167,30 @@ caveats in
   BE the problem — a vanilla MLP lacks the human surface/deep memory split, an
   honest dis-analogy.
 
-Owed throughout: seed sweeps on the H-rep / low-norm / crystallization contrasts
+- **Grokking as enlightenment ("悟り" — removing the glasses)**
+  ([`docs/06`](docs/06-enlightenment.md),
+  [`RESULTS_enlightenment.md`](experiments/enlightenment/RESULTS_enlightenment.md)).
+  From an essay by the owner: enlightenment is taking off the 色眼鏡 (colored
+  glasses = preconceptions) one by one to reach the true world a newborn already
+  sees. Mapped: glasses ↔ excess weight norm, removing them ↔ norm reduction, the
+  true world ↔ the structural circuit, the baby ↔ the transparent medium (no
+  glasses to remove). This forces the measurement the charter had been **owing** —
+  **R1** ("a grokked and a smoothly-learned solution *may* be the identical
+  circuit"), asserted but never tested. Measured via per-unit spectra of the
+  learned weights. **Supported:** the net that groks through the *opaque* medium
+  makes each hidden unit a near-clean sinusoid (`per_unit_top1 = 0.879`) — it
+  rebuilds the Fourier structure behind the glasses — while the memorizer does not
+  (`0.322`; flat `0.021`). Generalizing ⟺ a Fourier representation; R1 becomes a
+  result. **Corrected:** the "one/few" part is wrong — each unit is one frequency
+  but the population spans *many* (all 48 harmonics appear); fewness was a property
+  of the transparent *input*, not the grokked *solution*. So the adult and the baby
+  reach the same *kind* of world (harmonic), not the identical vector — the medium
+  pins *which* frequencies, sharpening C2. Honest dis-analogy (in `docs/06`):
+  removing the *last* glass — driving ‖w‖→0 — is death (underfit), not
+  enlightenment; the network's "true world" is the minimum sufficient structure,
+  not emptiness.
+
+Owed throughout: seed sweeps on the H-rep / low-norm / crystallization / enlightenment contrasts
 (single-seed so far); a cleaner minimum-norm-interpolant measurement than the
 runaway wd=0 norm; and an independent test of the "toy" half (removing the data
 gradient during the still phase).
