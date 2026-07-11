@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Gloxinia — watch grokking (delayed generalization) happen live in your browser. A tiny MLP trained on modular addition, compiled from Rust to WebAssembly."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='88'%3E%E2%9C%BD%3C/text%3E%3C/svg%3E"
+    />
+    <title>Gloxinia — grokking, live in your browser</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="hero">
+        <h1>Gloxinia<span class="petal">✽</span></h1>
+        <p class="tagline">
+          Watch <strong>grokking</strong> happen, live in your browser. A tiny
+          neural net learns <code>(a + b) mod p</code> — trained in
+          <strong>Rust → WebAssembly</strong>, driven by TypeScript.
+        </p>
+      </header>
+
+      <main>
+        <section class="panel controls" aria-label="Experiment controls">
+          <div class="control-row">
+            <div class="field">
+              <label>Encoding <span class="hint">the one knob that matters</span></label>
+              <div class="seg" id="enc-seg" role="tablist">
+                <button class="seg-btn active" data-enc="0" role="tab">
+                  One-hot <em>(opaque)</em>
+                </button>
+                <button class="seg-btn" data-enc="1" role="tab">
+                  Fourier <em>(transparent)</em>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="control-row sliders">
+            <div class="field">
+              <label for="wd">Weight decay <span class="hint">the engine</span></label>
+              <input type="range" id="wd" min="0" max="3" step="0.1" value="1" />
+              <output id="wd-out">1.0</output>
+            </div>
+            <div class="field">
+              <label for="lr">Learning rate</label>
+              <input type="range" id="lr" min="0.001" max="0.01" step="0.001" value="0.003" />
+              <output id="lr-out">0.003</output>
+            </div>
+            <div class="field">
+              <label for="tf">Train fraction</label>
+              <input type="range" id="tf" min="0.3" max="0.8" step="0.05" value="0.7" />
+              <output id="tf-out">0.70</output>
+            </div>
+          </div>
+
+          <details class="advanced">
+            <summary>Advanced</summary>
+            <div class="control-row sliders">
+              <div class="field">
+                <label for="p">Modulus p</label>
+                <input type="range" id="p" min="11" max="31" step="2" value="23" />
+                <output id="p-out">23</output>
+              </div>
+              <div class="field">
+                <label for="hidden">Hidden units</label>
+                <input type="range" id="hidden" min="64" max="384" step="32" value="256" />
+                <output id="hidden-out">256</output>
+              </div>
+              <div class="field">
+                <label for="seed">Seed</label>
+                <input type="number" id="seed" min="0" max="9999" step="1" value="0" />
+              </div>
+              <div class="field">
+                <label for="speed">Steps / frame</label>
+                <input type="range" id="speed" min="5" max="60" step="5" value="25" />
+                <output id="speed-out">25</output>
+              </div>
+            </div>
+          </details>
+
+          <div class="control-row actions">
+            <button id="run" class="primary">▶ Run</button>
+            <button id="reset">↻ Reset</button>
+            <span class="note">
+              Grokking is a <em>delayed</em> transition — expect a stretch of
+              flat val accuracy (tens of seconds) while it memorizes, then a
+              sudden step. That wait is the whole point.
+            </span>
+          </div>
+        </section>
+
+        <section class="panel status" aria-label="Live status">
+          <div id="phase" class="phase phase-init">Idle — press Run</div>
+          <div class="stats">
+            <div class="stat"><span class="k">step</span><span class="v" id="s-step">0</span></div>
+            <div class="stat"><span class="k">train acc</span><span class="v" id="s-tra">—</span></div>
+            <div class="stat highlight"><span class="k">val acc</span><span class="v" id="s-vaa">—</span></div>
+            <div class="stat"><span class="k">val loss</span><span class="v" id="s-val">—</span></div>
+            <div class="stat"><span class="k">‖weights‖</span><span class="v" id="s-wn">—</span></div>
+          </div>
+        </section>
+
+        <section class="panel charts">
+          <div class="chart-block">
+            <div class="chart-title">
+              Accuracy <span class="sub">— the visible step: <b class="c-train">train</b> vs <b class="c-val">val</b></span>
+            </div>
+            <canvas id="chart-acc" width="900" height="260"></canvas>
+          </div>
+          <div class="chart-block">
+            <div class="chart-title">
+              Val loss &amp; weight norm
+              <span class="sub">— <b class="c-loss">val loss</b> humps during memorization (mirage guard); <b class="c-norm">‖weights‖</b> falls as the structural circuit precipitates</span>
+            </div>
+            <canvas id="chart-aux" width="900" height="260"></canvas>
+          </div>
+        </section>
+
+        <section class="panel explain">
+          <h2>What am I looking at?</h2>
+          <p>
+            The network sees two residues <code>a, b ∈ {0…p−1}</code> and must
+            output <code>(a + b) mod p</code>. It only ever trains on a
+            <em>fraction</em> of all pairs, so the data underdetermines the
+            rule: a lookup table that memorizes the training pairs fits just as
+            well as the true additive structure.
+          </p>
+          <ul>
+            <li>
+              <b>One-hot (opaque):</b> residues are an arbitrary basis, the
+              group structure is hidden. The net <em>memorizes</em> first —
+              train accuracy hits 100% while validation stays at chance and
+              val&nbsp;loss <em>rises</em>. Then <b>weight decay</b> slowly
+              shrinks the high-norm memorized table until the low-norm
+              structural circuit becomes cheaper, and validation snaps to 100%
+              in a late, visible <b>step</b>. That step is grokking.
+            </li>
+            <li>
+              <b>Weight decay = 0:</b> the engine is off. The net memorizes and
+              <em>never</em> groks — val accuracy stays flat forever while the
+              weight norm runs away.
+            </li>
+            <li>
+              <b>Fourier (transparent):</b> nearby residues map to nearby points
+              on a circle, so the group structure is exposed in the input
+              geometry. The sharp memorize-then-snap is <em>gone</em> — the net
+              learns diffusely instead of grokking. The drama of grokking is a
+              property of the <em>medium</em>, not of the concept being learned.
+              <span class="hint">(At this small, fast <code>p</code> the
+              transparent arm learns partially; the clean "generalizes with no
+              step" result lives in the larger <code>p=97</code> regime in the
+              research notes.)</span>
+            </li>
+          </ul>
+          <p class="src">
+            This is the repository's <code>minimal_grok.py</code> experiment,
+            ported to Rust and compiled to WebAssembly so it runs entirely on
+            your machine — no server, no network. See the
+            <a href="https://github.com/masamoto1982/Gloxinia" target="_blank" rel="noopener">source and research notes</a>.
+          </p>
+        </section>
+      </main>
+
+      <footer>
+        <span>Gloxinia · Rust · WASM · TypeScript · GitHub Pages</span>
+      </footer>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

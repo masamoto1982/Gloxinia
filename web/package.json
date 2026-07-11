@@ -1,0 +1,17 @@
+{
+  "name": "gloxinia-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Gloxinia — an in-browser grokking demonstrator (Rust/WASM + TypeScript).",
+  "scripts": {
+    "build:wasm": "bash ../crate/build-wasm.sh",
+    "dev": "npm run build:wasm && vite",
+    "build": "npm run build:wasm && tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  }
+}

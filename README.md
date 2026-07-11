@@ -9,6 +9,38 @@ The name is a reminder of the register we want: not grand claims about
 intelligence, but a specific, falsifiable question, measured carefully, with the
 losses and nulls written down next to the wins.
 
+## Interactive demo — watch grokking happen in your browser
+
+**▶ Live app: https://masamoto1982.github.io/Gloxinia/**
+
+The repository's `minimal_grok.py` experiment is ported to **Rust**, compiled to
+**WebAssembly**, and driven by a **TypeScript / HTML / CSS** frontend, so you can
+watch grokking unfold live — no server, no Python, everything runs on your
+machine. A tiny one-hidden-layer MLP trains full-batch on `(a + b) mod p`; the
+charts show train accuracy snapping to 100% while validation stays at chance
+(the memorization phase), then the late, visible **step** to full
+generalization, with the val-loss hump (mirage guard) and the weight norm
+alongside. Drag **weight decay** to `0` and reset to watch the engine switch
+off — it memorizes and never groks.
+
+The app lives in [`web/`](web) (frontend) and [`crate/`](crate) (the Rust
+trainer). Build and run locally:
+
+```bash
+# one-time: Rust wasm target + wasm-bindgen CLI
+rustup target add wasm32-unknown-unknown
+cargo install wasm-bindgen-cli --version 0.2.100
+
+cd web
+npm install
+npm run dev        # http://localhost:5173/Gloxinia/
+# or: npm run build && npm run preview
+```
+
+Pushing to `main` publishes it to GitHub Pages via
+[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) (enable Pages with
+"GitHub Actions" as the source).
+
 ## The question
 
 Split "ambiguity" into two things and keep them apart at all times:
